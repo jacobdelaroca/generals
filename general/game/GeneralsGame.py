@@ -139,7 +139,7 @@ class Game():
                 return False, 'one square at a time'
             
             # try to move diagonally
-            if not abs(abs(org_y - to_y) - abs(org_x - to_x)) == 1:
+            if not abs(org_y - to_y) * abs(org_x - to_x) == 0:
                 return False, 'cannot move diagonaly'
             
             # using negative indexing to "wrap" around the board 
@@ -157,7 +157,7 @@ class Game():
 
 
 
-move = ([4, 5], [5, 5])
+move = ([3, 0], [4, 0])
 move2 = ([6, 1], [5, 1])
 player = 'p1'
 player2 = 'p2'
