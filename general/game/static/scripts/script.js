@@ -9,17 +9,25 @@ var isDragging = false;
 var offsetX, offsetY;
 let elementToMove = null
 const player = 'p1';
+const opponent = 'p2';
 
-const boardPieces = [
+const boardOrig = [
     [' ', ' ', ' ', 'g3 p1', 'f p1', 'sg p1', ' ', ' ', ' '],
     ['g1 p1', 'g2 p1', 'sp p1', 'lc p1', 'p p1', 'l1 p1', 'sp p1', 'cp p1', 'm p1'],
     ['l2 p1', ' ', 'p p1', ' ', 'p p1', 'g5 p1', 'p p1', 'p p1', 'cl p1'],
     ['p p1', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
     [' ', ' ', ' ', ' ', ' ', 'g4 p1', ' ', ' ', ' '],
-    ['g3 p2', ' ', ' ', 'p p2', 'lc p2', 'g5 p2', 'p p2', ' ', ' '],
-    [' ', 'l1 p2', 'sp p2', 'cp p2', 'sg p2', 'p p2', ' ', 'g4 p2', 'sp p2'],
-    ['l2 p2', 'm p2', 'cl p2', 'p p2', 'p p2', 'f p2', 'g1 p2', 'g2 p2', 'p p2'],
+    ['p2', ' ', ' ', 'p2', 'p2', 'p2', 'p2', ' ', ' '],
+    [' ', 'p2', 'p2', 'p2', 'p2', 'p2', ' ', 'p2', 'p2'],
+    ['p2', 'p2', 'p2', 'p2', 'p2', 'p2', 'p2', 'p2', 'p2'],
 ]
+
+const rows = player === 'p1'? ['1', '2', '3', '4', '5', '6', '7', '8'].reverse():['1', '2', '3', '4', '5', '6', '7', '8'];
+const cols = player === 'p1'? ['1', '2', '3', '4', '5', '6', '7', '8', '9'].reverse():['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+let move = [];
+
+const boardPieces = boardOrig.map(row => row.reverse()).reverse();
 
 console.log(draggableElement);
 console.log(draggableElement.textContent);
@@ -56,8 +64,6 @@ document.addEventListener('mouseup', function () {
 });
 
 // draw the board and put unique ids for all the tiles
-const rows = ['1', '2', '3', '4', '5', '6', '7', '8'];
-const cols = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'k'];
 const drawBoard = () =>{
     const boardArea = document.getElementById('board-area');
     rows.forEach(row => {
@@ -92,8 +98,18 @@ loadTiles();
 board.forEach((row, i) => {
     row.forEach((tile, j) => {
         tile.addEventListener('click', e => {
+            if(tile.classList.contains('pos-move')){
+                const to = [Number(tile.id[0]), Number(tile.id[1])]
+                move.push(to);
+                console.log(move);
+                // send data to server
+                move = [];
+            } else {
+                move = [];
+                const from = [Number(tile.id[0]), Number(tile.id[1])]
+                move.push(from);
+            }
             showMovableTiles(i,j);
-            console.log('click fired');
         });
         tile.textContent = boardPieces[i][j];
     });
@@ -106,27 +122,37 @@ const clearBoarColor = () => {
             tile.style.backgroundColor = 'aqua';
         });
     });
+    const posMoves = document.getElementsByClassName('pos-move');
+    for(let i = 0; i < posMoves.length; i++){
+        posMoves[i].classList.remove('pos-move');
+    }
 }
 
 // function to color movable tiles 
 const showMovableTiles = (i, j) => {
     clearBoarColor();
+    currPiece = boardPieces[i][j];
     // all the offset for the pieces around the tile to be moved
     const posMoves = [[-1,0], [1,0], [0,-1], [0,1]];
     posMoves.forEach(offset => {
         try{
             // get the piece information
             const pieceText = boardPieces[i+offset[0]][j+offset[1]];
-            const piece = pieceText.split(' ')[0];
-            const owner = pieceText.split(' ')[1];
             // check the content of the tile of the posiible move and change color accordingly
-            if(piece === ''){
-                console.log('aqua');
-                board[i+offset[0]][j+offset[1]].style.backgroundColor = 'aquamarine';
-            } else if(!(owner === player)){
-                board[i+offset[0]][j+offset[1]].style.backgroundColor = 'red';
-                console.log('red');
+            
+            if(currPiece.split(' ')[1] === player){
+                const tile = board[i+offset[0]][j+offset[1]];
+                if(pieceText === ' '){
+                    console.log('aqua');
+                    tile.style.backgroundColor = 'aquamarine';
+                    tile.classList.add('pos-move')
+                } else if(pieceText === opponent){
+                    tile.style.backgroundColor = 'red';
+                    tile.classList.add('pos-move')
+                    console.log('red');
+                }
             }
+
         } catch(err) {
             console.log(err);
         }
